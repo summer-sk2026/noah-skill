@@ -31,13 +31,16 @@ Command-driven noah trade skill for the globally installed Noah CLI.
 This skill depends on the Noah CLI project:
 - repository: `https://github.com/summer-sk2026/noah-cli/tree/main`
 - binary: `noah`
+- all runtime commands in this skill must use the globally installed `noah` command
+- do not execute this project through local project scripts or local entry points as a substitute for the global CLI
 
 ## Preflight
 
 Before running any command:
 - verify the `noah` command exists by running `noah --version`
-- if `noah --version` prints output, treat the CLI as available
+- if `noah --version` prints output, treat the globally installed CLI as available
 - if `noah --version` does not print output or the command is missing, follow the install instructions declared in this skill's frontmatter
+- after installation, always execute commands as `noah ...`, not through project-local script entry points
 - use `noah inspect <namespace> <command>` before guessing arguments
 - if inspect output shows bearer authentication, ensure `noah init --token <bearerToken>` has already been completed
 
@@ -54,7 +57,7 @@ Verification command:
 noah --version
 ```
 
-If `noah --version` does not produce output, install the CLI using the frontmatter `agent.install` steps, then rerun `noah --version`.
+If `noah --version` does not produce output, install the CLI using the frontmatter `agent.install` steps, then rerun `noah --version`. After installation succeeds, always run the global command form such as `noah market ...` or `noah trade ...`.
 
 ---
 
@@ -97,6 +100,8 @@ Run `noah --version` first. If it prints output, continue with `noah inspect tra
 
 ### Step 3 — Run commands immediately
 
+Always invoke the globally installed CLI with `noah ...`. Do not replace the documented commands with local project execution forms.
+
 Many commands in this skill depend on authenticated trade data. Inspect first, confirm required query/body fields, and then execute with validated parameters.
 
 ---
@@ -112,4 +117,5 @@ Many commands in this skill depend on authenticated trade data. Inspect first, c
 
 - 本 skill 默认依赖全局可用的 `noah` 命令。
 - 默认命令入口为 `noah`。
+- 实际执行时始终使用全局安装后的 `noah ...` 命令，不使用项目内脚本或本地入口替代。
 - trade skill 以账户、持仓、订单、成交、费用等交易相关命令为主。

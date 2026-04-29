@@ -9,7 +9,7 @@ noah inspect market total-asset
 noah inspect market hold-share-list
 ```
 
-如果 `noah --version` 无输出，则先执行本 skill frontmatter 中的 `agent.install` 步骤，安装完成后再继续。
+如果 `noah --version` 无输出，则先执行本 skill frontmatter 中的 `agent.install` 步骤，安装完成后再继续。安装成功后，实际调用时始终使用全局 `noah ...` 命令。
 
 ---
 
