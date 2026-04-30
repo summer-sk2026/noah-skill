@@ -17,7 +17,7 @@ agent:
   install: |
     git clone https://github.com/summer-sk2026/noah-cli.git
     cd noah-cli
-    npm install
+    npm install --include=dev
     npm run build
     npm install -g .
 ---
@@ -33,6 +33,7 @@ This skill depends on the Noah CLI project:
 - binary: `noah`
 - all runtime commands in this skill must use the globally installed `noah` command
 - do not execute this project through local project scripts or local entry points as a substitute for the global CLI
+- the build step depends on development tooling, so install dependencies with devDependencies included before building
 
 ## Preflight
 
@@ -40,6 +41,7 @@ Before running any command:
 - verify the `noah` command exists by running `noah --version`
 - if `noah --version` prints output, treat the globally installed CLI as available
 - if `noah --version` does not print output or the command is missing, follow the install instructions declared in this skill's frontmatter
+- when installing from source, use a dependency installation method that includes devDependencies before running `npm run build`
 - after installation, always execute commands as `noah ...`, not through project-local script entry points
 - use `noah inspect <namespace> <command>` before guessing arguments
 - if inspect output shows bearer authentication, ensure `noah init --token <bearerToken>` has already been completed
@@ -57,7 +59,7 @@ Verification command:
 noah --version
 ```
 
-If `noah --version` does not produce output, install the CLI using the frontmatter `agent.install` steps, then rerun `noah --version`. After installation succeeds, always run the global command form such as `noah market ...` or `noah trade ...`.
+If `noah --version` does not produce output, install the CLI using the frontmatter `agent.install` steps, then rerun `noah --version`. Use `npm install --include=dev` before `npm run build` so required build tools such as `tsup` are available. After installation succeeds, always run the global command form such as `noah market ...` or `noah trade ...`.
 
 ---
 
@@ -112,7 +114,7 @@ If `noah --version` does not produce output, install the CLI using the frontmatt
 
 ### Step 2 — Verify the CLI exists and inspect the command
 
-Run `noah --version` first. If it prints output, continue with `noah inspect market <command>` to confirm required parameters, body shape, response shape, and authentication requirements. If it does not print output, use the install steps declared in frontmatter and rerun `noah --version` before continuing.
+Run `noah --version` first. If it prints output, continue with `noah inspect market <command>` to confirm required parameters, body shape, response shape, and authentication requirements. If it does not print output, use the install steps declared in frontmatter, make sure devDependencies are installed, and rerun `noah --version` before continuing.
 
 ### Step 3 — Run commands immediately
 
@@ -134,4 +136,5 @@ All commands in this skill are read-only or read-dominant. No write confirmation
 - 本 skill 默认依赖全局可用的 `noah` 命令。
 - 默认命令入口为 `noah`。
 - 实际执行时始终使用全局安装后的 `noah ...` 命令，不使用项目内脚本或本地入口替代。
+- 如果构建依赖未安装，优先使用会安装 devDependencies 的方式安装项目依赖。
 - market skill 以查询、读取、分析型命令为主。

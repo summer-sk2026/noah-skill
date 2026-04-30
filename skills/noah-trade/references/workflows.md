@@ -9,7 +9,7 @@ noah inspect trade get-positions
 noah inspect trade get-stock-amount
 ```
 
-如果 `noah --version` 无输出，则先执行本 skill frontmatter 中的 `agent.install` 步骤，安装完成后再继续。安装成功后，实际调用时始终使用全局 `noah ...` 命令。
+如果 `noah --version` 无输出，则先执行本 skill frontmatter 中的 `agent.install` 步骤，安装完成后再继续。安装时先确保 devDependencies 也被安装，这样 `npm run build` 所需工具才可用。安装成功后，实际调用时始终使用全局 `noah ...` 命令。
 
 ---
 
