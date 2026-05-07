@@ -26,64 +26,105 @@ agent:
 
 Command-driven noah trade skill for the globally installed Noah CLI.
 
-## Dependency
+## CRITICAL: CLI Dependency
 
-This skill depends on the Noah CLI project:
+**This skill CANNOT function without the `noah` CLI being installed and globally available.**
+
+This skill is entirely driven by the `noah` command-line tool. Every operation listed below requires the `noah` binary to be installed globally on the system. There is NO alternative execution path — without a working `noah` command, this skill has zero capability.
+
 - repository: `https://github.com/summer-sk2026/noah-cli/tree/main`
-- binary: `noah`
-- all runtime commands in this skill must use the globally installed `noah` command
-- do not execute this project through local project scripts or local entry points as a substitute for the global CLI
-- the build step depends on development tooling, so install dependencies with devDependencies included before building
+- git clone URL: `https://github.com/summer-sk2026/noah-cli.git`
+- binary name: `noah`
+- all runtime commands MUST use the globally installed `noah` command
+- do NOT execute through local project scripts, `npx`, `node src/...`, or any other local entry point
+- do NOT skip the build step — the CLI must be compiled from TypeScript source before global installation
+- the build step requires devDependencies (e.g. `tsup`), so they MUST be installed
 
 ## Preflight
 
-Before running any command:
-- verify the `noah` command exists by running `noah --version`
-- if `noah --version` prints output, treat the globally installed CLI as available
-- if `noah --version` does not print output or the command is missing, follow the install instructions declared in this skill's frontmatter
-- when installing from source, use a dependency installation method that includes devDependencies before running `npm run build`
-- after installation, always execute commands as `noah ...`, not through project-local script entry points
-- use `noah inspect <namespace> <command>` before guessing arguments
-- if inspect output shows bearer authentication, ensure `noah init --token <bearerToken>` has already been completed
+Before running any command in this skill, you MUST complete these checks in order:
+
+1. Run `noah --version` to verify the CLI is globally available
+2. If `noah --version` produces version output → the CLI is ready, proceed to step 5
+3. If `noah --version` fails or command not found → you MUST install the CLI following the **Install** section below. Do NOT skip this step. Do NOT attempt to run any other noah command until installation succeeds.
+4. After installation, run `noah --version` again to confirm success. If it still fails, do NOT proceed — report the installation failure.
+5. Before executing any business command, run `noah inspect <namespace> <command>` to confirm required parameters, body shape, and authentication requirements. Do NOT guess arguments.
+6. If inspect output shows bearer authentication is required, ensure `noah init --token <bearerToken>` has been completed before executing the command.
 
 ## Install
 
-This skill declares its dependency and install commands directly in frontmatter:
-- package: `summer-sk2026/noah-cli`
-- bins: `noah`
-- install label: `Install Noah CLI`
+**When to install:** Install the CLI if `noah --version` does not produce output, returns an error, or the command is not found.
 
-Verification command:
+**Installation method:** Clone from source, build, and install globally. You MUST follow ALL steps below in exact order. Do NOT skip any step. Do NOT substitute alternative approaches.
+
+### Step-by-step installation commands:
 
 ```bash
+# Step 1: Clone the repository
+git clone https://github.com/summer-sk2026/noah-cli.git
+
+# Step 2: Enter the project directory
+cd noah-cli
+
+# Step 3: Install ALL dependencies including devDependencies
+# IMPORTANT: You MUST use --include=dev because the build tool (tsup) is a devDependency
+# Using plain "npm install" without --include=dev may skip build tools and cause build failure
+npm install --include=dev
+
+# Step 4: Build the TypeScript source into executable JavaScript
+# This step WILL FAIL if devDependencies were not installed in Step 3
+npm run build
+
+# Step 5: Install the built CLI globally so "noah" is available system-wide
+npm install -g .
+```
+
+### Post-installation verification:
+
+```bash
+# MUST succeed before proceeding with any other command
 noah --version
 ```
 
-If `noah --version` does not produce output, install the CLI using the frontmatter `agent.install` steps, then rerun `noah --version`. Use `npm install --include=dev` before `npm run build` so required build tools such as `tsup` are available. After installation succeeds, always run the global command form such as `noah market ...` or `noah trade ...`.
+### Common installation mistakes to avoid:
+- ❌ Do NOT run `npm install` without `--include=dev` — build will fail due to missing `tsup`
+- ❌ Do NOT skip `npm run build` — the CLI source is TypeScript and cannot run directly
+- ❌ Do NOT skip `npm install -g .` — without global install, `noah` command won't be available
+- ❌ Do NOT use `npx`, `node dist/...`, or project-local scripts as a substitute for global `noah`
+- ❌ Do NOT attempt to run business commands before `noah --version` succeeds
+- ✅ Always use the globally installed `noah ...` command form after installation
+
+### If installation fails:
+1. Ensure Node.js >= 18 and npm are available
+2. Ensure git is available for cloning
+3. Check that `npm install --include=dev` completed without errors
+4. Check that `npm run build` completed without errors (look for `tsup` related errors)
+5. Check that `npm install -g .` completed without permission errors (use sudo on Linux/macOS if needed)
+6. If all steps pass but `noah --version` still fails, check your system PATH
 
 ---
 
 ## Command Index
 
-| # | Command | Summary | Source |
-|---|---|---|---|
-| 1 | `trade get-account-info` | 获取账户信息 | tradeopenapi.yaml |
-| 2 | `trade get-positions` | 获取持仓列表 | tradeopenapi.yaml |
-| 3 | `trade get-stock-amount` | 获取证券可买可卖数量 | tradeopenapi.yaml |
-| 4 | `trade max-enable-buy-amt` | 查询融资最大可买数量 | tradeopenapi.yaml |
-| 5 | `trade get-sec-asset` | 获取证券资产 | tradeopenapi.yaml |
-| 6 | `trade get-sec-capital-flow` | 获取证券资金流水 | tradeopenapi.yaml |
-| 7 | `trade get-order-list` | 获取当日订单列表 | tradeopenapi.yaml |
-| 8 | `trade get-today-order-list` | 获取当日未完成委托订单列表 | tradeopenapi.yaml |
-| 9 | `trade get-history-order-list` | 获取历史订单列表 | tradeopenapi.yaml |
-| 10 | `trade get-today-deal-list` | 获取当日成交列表 | tradeopenapi.yaml |
-| 11 | `trade get-history-deal-list` | 获取历史成交列表 | tradeopenapi.yaml |
-| 12 | `trade get-finished-order-list` | 获取已完成订单列表 | tradeopenapi.yaml |
-| 13 | `trade get-order-detail` | 获取订单详情 | tradeopenapi.yaml |
-| 14 | `trade get-order-fee-detail` | 获取订单费用详情 | tradeopenapi.yaml |
-| 15 | `trade order-fee-query` | 查询下单预估费用 | tradeopenapi.yaml |
-| 16 | `trade convert-ufg-money-balance` | 不同币种汇率换算 | tradeopenapi.yaml |
-| 17 | `trade query-push-data` | 查询推送数据 | tradeopenapi.yaml |
+| # | Command | Summary |
+|---|---|---|
+| 1 | `trade get-account-info` | 获取账户信息 |
+| 2 | `trade get-positions` | 获取持仓列表 |
+| 3 | `trade get-stock-amount` | 获取证券可买可卖数量 |
+| 4 | `trade max-enable-buy-amt` | 查询融资最大可买数量 |
+| 5 | `trade get-sec-asset` | 获取证券资产 |
+| 6 | `trade get-sec-capital-flow` | 获取证券资金流水 |
+| 7 | `trade get-order-list` | 获取当日订单列表 |
+| 8 | `trade get-today-order-list` | 获取当日未完成委托订单列表 |
+| 9 | `trade get-history-order-list` | 获取历史订单列表 |
+| 10 | `trade get-today-deal-list` | 获取当日成交列表 |
+| 11 | `trade get-history-deal-list` | 获取历史成交列表 |
+| 12 | `trade get-finished-order-list` | 获取已完成订单列表 |
+| 13 | `trade get-order-detail` | 获取订单详情 |
+| 14 | `trade get-order-fee-detail` | 获取订单费用详情 |
+| 15 | `trade order-fee-query` | 查询下单预估费用 |
+| 16 | `trade convert-ufg-money-balance` | 不同币种汇率换算 |
+| 17 | `trade query-push-data` | 查询推送数据 |
 
 ---
 

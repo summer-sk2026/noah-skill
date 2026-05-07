@@ -26,75 +26,116 @@ agent:
 
 Command-driven noah market skill for the globally installed Noah CLI.
 
-## Dependency
+## CRITICAL: CLI Dependency
 
-This skill depends on the Noah CLI project:
+**This skill CANNOT function without the `noah` CLI being installed and globally available.**
+
+This skill is entirely driven by the `noah` command-line tool. Every operation listed below requires the `noah` binary to be installed globally on the system. There is NO alternative execution path — without a working `noah` command, this skill has zero capability.
+
 - repository: `https://github.com/summer-sk2026/noah-cli/tree/main`
-- binary: `noah`
-- all runtime commands in this skill must use the globally installed `noah` command
-- do not execute this project through local project scripts or local entry points as a substitute for the global CLI
-- the build step depends on development tooling, so install dependencies with devDependencies included before building
+- git clone URL: `https://github.com/summer-sk2026/noah-cli.git`
+- binary name: `noah`
+- all runtime commands MUST use the globally installed `noah` command
+- do NOT execute through local project scripts, `npx`, `node src/...`, or any other local entry point
+- do NOT skip the build step — the CLI must be compiled from TypeScript source before global installation
+- the build step requires devDependencies (e.g. `tsup`), so they MUST be installed
 
 ## Preflight
 
-Before running any command:
-- verify the `noah` command exists by running `noah --version`
-- if `noah --version` prints output, treat the globally installed CLI as available
-- if `noah --version` does not print output or the command is missing, follow the install instructions declared in this skill's frontmatter
-- when installing from source, use a dependency installation method that includes devDependencies before running `npm run build`
-- after installation, always execute commands as `noah ...`, not through project-local script entry points
-- use `noah inspect <namespace> <command>` before guessing arguments
-- if inspect output shows bearer authentication, ensure `noah init --token <bearerToken>` has already been completed
+Before running any command in this skill, you MUST complete these checks in order:
+
+1. Run `noah --version` to verify the CLI is globally available
+2. If `noah --version` produces version output → the CLI is ready, proceed to step 5
+3. If `noah --version` fails or command not found → you MUST install the CLI following the **Install** section below. Do NOT skip this step. Do NOT attempt to run any other noah command until installation succeeds.
+4. After installation, run `noah --version` again to confirm success. If it still fails, do NOT proceed — report the installation failure.
+5. Before executing any business command, run `noah inspect <namespace> <command>` to confirm required parameters, body shape, and authentication requirements. Do NOT guess arguments.
+6. If inspect output shows bearer authentication is required, ensure `noah init --token <bearerToken>` has been completed before executing the command.
 
 ## Install
 
-This skill declares its dependency and install commands directly in frontmatter:
-- package: `summer-sk2026/noah-cli`
-- bins: `noah`
-- install label: `Install Noah CLI`
+**When to install:** Install the CLI if `noah --version` does not produce output, returns an error, or the command is not found.
 
-Verification command:
+**Installation method:** Clone from source, build, and install globally. You MUST follow ALL steps below in exact order. Do NOT skip any step. Do NOT substitute alternative approaches.
+
+### Step-by-step installation commands:
 
 ```bash
+# Step 1: Clone the repository
+git clone https://github.com/summer-sk2026/noah-cli.git
+
+# Step 2: Enter the project directory
+cd noah-cli
+
+# Step 3: Install ALL dependencies including devDependencies
+# IMPORTANT: You MUST use --include=dev because the build tool (tsup) is a devDependency
+# Using plain "npm install" without --include=dev may skip build tools and cause build failure
+npm install --include=dev
+
+# Step 4: Build the TypeScript source into executable JavaScript
+# This step WILL FAIL if devDependencies were not installed in Step 3
+npm run build
+
+# Step 5: Install the built CLI globally so "noah" is available system-wide
+npm install -g .
+```
+
+### Post-installation verification:
+
+```bash
+# MUST succeed before proceeding with any other command
 noah --version
 ```
 
-If `noah --version` does not produce output, install the CLI using the frontmatter `agent.install` steps, then rerun `noah --version`. Use `npm install --include=dev` before `npm run build` so required build tools such as `tsup` are available. After installation succeeds, always run the global command form such as `noah market ...` or `noah trade ...`.
+### Common installation mistakes to avoid:
+- ❌ Do NOT run `npm install` without `--include=dev` — build will fail due to missing `tsup`
+- ❌ Do NOT skip `npm run build` — the CLI source is TypeScript and cannot run directly
+- ❌ Do NOT skip `npm install -g .` — without global install, `noah` command won't be available
+- ❌ Do NOT use `npx`, `node dist/...`, or project-local scripts as a substitute for global `noah`
+- ❌ Do NOT attempt to run business commands before `noah --version` succeeds
+- ✅ Always use the globally installed `noah ...` command form after installation
+
+### If installation fails:
+1. Ensure Node.js >= 18 and npm are available
+2. Ensure git is available for cloning
+3. Check that `npm install --include=dev` completed without errors
+4. Check that `npm run build` completed without errors (look for `tsup` related errors)
+5. Check that `npm install -g .` completed without permission errors (use sudo on Linux/macOS if needed)
+6. If all steps pass but `noah --version` still fails, check your system PATH
 
 ---
 
 ## Command Index
 
-| # | Command | Summary | Source |
-|---|---|---|---|
-| 1 | `market fixed-income` | 用户固收类资产通用查询接口 | openapi.yaml |
-| 2 | `market total-asset` | 资产信息汇总 | openapi.yaml |
-| 3 | `market hold-share-list` | 公募信息获取 | openapi.yaml |
-| 4 | `market query-private-contract-asset-list` | 私募查询接口 | openapi.yaml |
-| 5 | `market cash-total-asset` | 现金宝 | openapi.yaml |
-| 6 | `market bank-deposit-hold-detail` | 银行定存存续或到期详情 | openapi.yaml |
-| 7 | `market user-asset-query-detail` | 用户固收类存量-存续详情接口 | openapi.yaml |
-| 8 | `market balance-list` | 用户余额列表 | openapi.yaml |
-| 9 | `market get-stock-rank` | 获取排行榜数据 | openapi.yaml |
-| 10 | `market shareholder-inc-red-hold` | 股东增减持明细榜单按市场范围 | openapi.yaml |
-| 11 | `market shareholder-inc-red-hold-by-date` | 股东增减持明细榜单按时间范围 | openapi.yaml |
-| 12 | `market shareholder-inc-red-hold-by-ucode` | 股东增减持明细榜单按股票代码范围 | openapi.yaml |
-| 13 | `market get-finance-us-infos` | 获取美股财务数据 | openapi.yaml |
-| 14 | `market get-finance-hk-infos` | 获取港股财务数据 | openapi.yaml |
-| 15 | `market get-us-analysis` | 获取美股分析信息 | openapi.yaml |
-| 16 | `market get-capital-flow` | 获取个股资金流向 | openapi.yaml |
-| 17 | `market get-market-state` | 获取股票对应市场的市场状态 | openapi.yaml |
-| 18 | `market get-market-snapshot` | 获取市场快照信息 | openapi.yaml |
-| 19 | `market get-rt-data` | 获取实时分时 | openapi.yaml |
-| 20 | `market get-cur-kline` | 获取实时 K 线 | openapi.yaml |
-| 21 | `market get-cur-kline-date` | 获取实时 K 线,根据时间范围筛选 | openapi.yaml |
-| 22 | `market get-rt-ticker` | 获取实时逐笔 | openapi.yaml |
-| 23 | `market get-broker-queue` | 获取实时经纪队列 | openapi.yaml |
-| 24 | `market get-stock-basicinfo` | 获取指定市场中特定类型或特定股票的基本信息 | openapi.yaml |
-| 25 | `market get-stock-filter` | 条件选股 | openapi.yaml |
-| 26 | `market get-ipo-list` | 获取指定市场的 IPO 列表 | openapi.yaml |
-| 27 | `market get-global-state` | 获取全局市场状态 | openapi.yaml |
-| 28 | `market request-trading-days` | 获取交易日历 | openapi.yaml |
+| # | Command | Summary |
+|---|---|---|
+| 1 | `market fixed-income` | 用户固收类资产通用查询接口 |
+| 2 | `market total-asset` | 资产信息汇总 |
+| 3 | `market hold-share-list` | 公募信息获取 |
+| 4 | `market query-private-contract-asset-list` | 私募查询接口 |
+| 5 | `market cash-total-asset` | 现金宝 |
+| 6 | `market bank-deposit-hold-detail` | 银行定存存续或到期详情 |
+| 7 | `market user-asset-query-detail` | 用户固收类存量-存续详情接口 |
+| 8 | `market balance-list` | 用户余额列表 |
+| 9 | `market get-stock-rank` | 获取排行榜数据 |
+| 10 | `market shareholder-inc-red-hold` | 股东增减持明细榜单按市场范围 |
+| 11 | `market shareholder-inc-red-hold-by-date` | 股东增减持明细榜单按时间范围 |
+| 12 | `market shareholder-inc-red-hold-by-ucode` | 股东增减持明细榜单按股票代码范围 |
+| 13 | `market get-finance-us-infos` | 获取美股财务数据 |
+| 14 | `market get-finance-hk-infos` | 获取港股财务数据 |
+| 15 | `market get-us-analysis` | 获取美股分析信息 |
+| 16 | `market get-capital-flow` | 获取个股资金流向 |
+| 17 | `market get-market-state` | 获取股票对应市场的市场状态 |
+| 18 | `market get-market-snapshot` | 获取市场快照信息 |
+| 19 | `market get-rt-data` | 获取实时分时 |
+| 20 | `market get-cur-kline` | 获取实时 K 线 |
+| 21 | `market get-cur-kline-date` | 获取实时 K 线,根据时间范围筛选 |
+| 22 | `market get-rt-ticker` | 获取实时逐笔 |
+| 23 | `market get-broker-queue` | 获取实时经纪队列 |
+| 24 | `market get-stock-basicinfo` | 获取指定市场中特定类型或特定股票的基本信息 |
+| 25 | `market get-stock-filter` | 条件选股 |
+| 26 | `market get-ipo-list` | 获取指定市场的 IPO 列表 |
+| 27 | `market get-global-state` | 获取全局市场状态 |
+| 28 | `market request-trading-days` | 获取交易日历 |
 
 ---
 
