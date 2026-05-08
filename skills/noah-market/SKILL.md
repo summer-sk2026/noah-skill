@@ -108,34 +108,34 @@ noah --version
 
 | # | Command | Summary |
 |---|---|---|
-| 1 | `market fixed-income` | 用户固收类资产通用查询接口 |
-| 2 | `market total-asset` | 资产信息汇总 |
-| 3 | `market hold-share-list` | 公募信息获取 |
-| 4 | `market query-private-contract-asset-list` | 私募查询接口 |
-| 5 | `market cash-total-asset` | 现金宝 |
-| 6 | `market bank-deposit-hold-detail` | 银行定存存续或到期详情 |
-| 7 | `market user-asset-query-detail` | 用户固收类存量-存续详情接口 |
-| 8 | `market balance-list` | 用户余额列表 |
-| 9 | `market get-stock-rank` | 获取排行榜数据 |
-| 10 | `market shareholder-inc-red-hold` | 股东增减持明细榜单按市场范围 |
-| 11 | `market shareholder-inc-red-hold-by-date` | 股东增减持明细榜单按时间范围 |
-| 12 | `market shareholder-inc-red-hold-by-ucode` | 股东增减持明细榜单按股票代码范围 |
-| 13 | `market get-finance-us-infos` | 获取美股财务数据 |
-| 14 | `market get-finance-hk-infos` | 获取港股财务数据 |
-| 15 | `market get-us-analysis` | 获取美股分析信息 |
-| 16 | `market get-capital-flow` | 获取个股资金流向 |
-| 17 | `market get-market-state` | 获取股票对应市场的市场状态 |
-| 18 | `market get-market-snapshot` | 获取市场快照信息 |
-| 19 | `market get-rt-data` | 获取实时分时 |
-| 20 | `market get-cur-kline` | 获取实时 K 线 |
-| 21 | `market get-cur-kline-date` | 获取实时 K 线,根据时间范围筛选 |
-| 22 | `market get-rt-ticker` | 获取实时逐笔 |
-| 23 | `market get-broker-queue` | 获取实时经纪队列 |
-| 24 | `market get-stock-basicinfo` | 获取指定市场中特定类型或特定股票的基本信息 |
-| 25 | `market get-stock-filter` | 条件选股 |
-| 26 | `market get-ipo-list` | 获取指定市场的 IPO 列表 |
-| 27 | `market get-global-state` | 获取全局市场状态 |
-| 28 | `market request-trading-days` | 获取交易日历 |
+| 1 | `noah market fixed-income` | 用户固收类资产通用查询接口 |
+| 2 | `noah market total-asset` | 资产信息汇总 |
+| 3 | `noah market hold-share-list` | 公募信息获取 |
+| 4 | `noah market query-private-contract-asset-list` | 私募查询接口 |
+| 5 | `noah market cash-total-asset` | 现金宝 |
+| 6 | `noah market bank-deposit-hold-detail` | 银行定存存续或到期详情 |
+| 7 | `noah market user-asset-query-detail` | 用户固收类存量-存续详情接口 |
+| 8 | `noah market balance-list` | 用户余额列表 |
+| 9 | `noah market get-stock-rank` | 获取排行榜数据 |
+| 10 | `noah market shareholder-inc-red-hold` | 股东增减持明细榜单按市场范围 |
+| 11 | `noah market shareholder-inc-red-hold-by-date` | 股东增减持明细榜单按时间范围 |
+| 12 | `noah market shareholder-inc-red-hold-by-ucode` | 股东增减持明细榜单按股票代码范围 |
+| 13 | `noah market get-finance-us-infos` | 获取美股财务数据 |
+| 14 | `noah market get-finance-hk-infos` | 获取港股财务数据 |
+| 15 | `noah market get-us-analysis` | 获取美股分析信息 |
+| 16 | `noah market get-capital-flow` | 获取个股资金流向 |
+| 17 | `noah market get-market-state` | 获取股票对应市场的市场状态 |
+| 18 | `noah market get-market-snapshot` | 获取市场快照信息 |
+| 19 | `noah market get-rt-data` | 获取实时分时 |
+| 20 | `noah market get-cur-kline` | 获取实时 K 线 |
+| 21 | `noah market get-cur-kline-date` | 获取实时 K 线,根据时间范围筛选 |
+| 22 | `noah market get-rt-ticker` | 获取实时逐笔 |
+| 23 | `noah market get-broker-queue` | 获取实时经纪队列 |
+| 24 | `noah market get-stock-basicinfo` | 获取指定市场中特定类型或特定股票的基本信息 |
+| 25 | `noah market get-stock-filter` | 条件选股 |
+| 26 | `noah market get-ipo-list` | 获取指定市场的 IPO 列表 |
+| 27 | `noah market get-global-state` | 获取全局市场状态 |
+| 28 | `noah market request-trading-days` | 获取交易日历 |
 
 ---
 
@@ -151,19 +151,12 @@ noah --version
 
 如果无输出或命令不存在，必须先完成 Install 部分的安装步骤。
 
-### Step 2 — 识别用户意图并加载参考文档
+### Step 2 — 匹配工作流
 
-根据用户请求判断涉及哪个主题，加载对应的 reference 文档获取可用命令列表：
+**首先**加载 {baseDir}/references/workflows.md，判断用户请求是否匹配其中定义的工作流场景。
 
-| User intent | Reference to load |
-|---|---|
-| Basic Data | {baseDir}/references/basic-data-commands.md |
-| F10 Infos | {baseDir}/references/f10-infos-commands.md |
-| Market | {baseDir}/references/market-commands.md |
-| Rank Data | {baseDir}/references/rank-data-commands.md |
-| Real Time Quotes | {baseDir}/references/real-time-quotes-commands.md |
-| wealth Data | {baseDir}/references/wealth-data-commands.md |
-| 跨步骤组合与典型调用顺序 | {baseDir}/references/workflows.md |
+- 如果匹配到工作流 → 按该工作流定义的命令编排（并行/串行）执行，跳到 Step 3
+- 如果没有匹配的工作流 → 从 Command Index 中选择合适的单条命令，跳到 Step 3
 
 ### Step 3 — 对每个目标命令执行 inspect
 
@@ -189,12 +182,12 @@ noah inspect market <command>
 noah init --token <bearerToken>
 ```
 
-### Step 5 — 按编排规则执行命令
+### Step 5 — 执行命令
 
-根据 {baseDir}/references/workflows.md 中定义的工作流编排执行命令：
-- **并行**：命令之间无数据依赖时，同时执行
-- **串行**：后续命令依赖前一步输出时，等前一步完成再执行
-- 参数名和值必须严格按 Step 3 inspect 输出构造
+按 Step 3 inspect 输出的参数定义构造并执行命令：
+- 如果是工作流模式：按工作流定义的并行/串行规则执行多条命令
+- 如果是单命令模式：直接执行该命令
+- 参数名和值必须严格按 inspect 输出构造
 
 ### Step 6 — 汇总结果
 

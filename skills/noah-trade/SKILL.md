@@ -108,23 +108,23 @@ noah --version
 
 | # | Command | Summary |
 |---|---|---|
-| 1 | `trade get-account-info` | 获取账户信息 |
-| 2 | `trade get-positions` | 获取持仓列表 |
-| 3 | `trade get-stock-amount` | 获取证券可买可卖数量 |
-| 4 | `trade max-enable-buy-amt` | 查询融资最大可买数量 |
-| 5 | `trade get-sec-asset` | 获取证券资产 |
-| 6 | `trade get-sec-capital-flow` | 获取证券资金流水 |
-| 7 | `trade get-order-list` | 获取当日订单列表 |
-| 8 | `trade get-today-order-list` | 获取当日未完成委托订单列表 |
-| 9 | `trade get-history-order-list` | 获取历史订单列表 |
-| 10 | `trade get-today-deal-list` | 获取当日成交列表 |
-| 11 | `trade get-history-deal-list` | 获取历史成交列表 |
-| 12 | `trade get-finished-order-list` | 获取已完成订单列表 |
-| 13 | `trade get-order-detail` | 获取订单详情 |
-| 14 | `trade get-order-fee-detail` | 获取订单费用详情 |
-| 15 | `trade order-fee-query` | 查询下单预估费用 |
-| 16 | `trade convert-ufg-money-balance` | 不同币种汇率换算 |
-| 17 | `trade query-push-data` | 查询推送数据 |
+| 1 | `noah trade get-account-info` | 获取账户信息 |
+| 2 | `noah trade get-positions` | 获取持仓列表 |
+| 3 | `noah trade get-stock-amount` | 获取证券可买可卖数量 |
+| 4 | `noah trade max-enable-buy-amt` | 查询融资最大可买数量 |
+| 5 | `noah trade get-sec-asset` | 获取证券资产 |
+| 6 | `noah trade get-sec-capital-flow` | 获取证券资金流水 |
+| 7 | `noah trade get-order-list` | 获取当日订单列表 |
+| 8 | `noah trade get-today-order-list` | 获取当日未完成委托订单列表 |
+| 9 | `noah trade get-history-order-list` | 获取历史订单列表 |
+| 10 | `noah trade get-today-deal-list` | 获取当日成交列表 |
+| 11 | `noah trade get-history-deal-list` | 获取历史成交列表 |
+| 12 | `noah trade get-finished-order-list` | 获取已完成订单列表 |
+| 13 | `noah trade get-order-detail` | 获取订单详情 |
+| 14 | `noah trade get-order-fee-detail` | 获取订单费用详情 |
+| 15 | `noah trade order-fee-query` | 查询下单预估费用 |
+| 16 | `noah trade convert-ufg-money-balance` | 不同币种汇率换算 |
+| 17 | `noah trade query-push-data` | 查询推送数据 |
 
 ---
 
@@ -140,14 +140,12 @@ noah --version
 
 如果无输出或命令不存在，必须先完成 Install 部分的安装步骤。
 
-### Step 2 — 识别用户意图并加载参考文档
+### Step 2 — 匹配工作流
 
-根据用户请求判断涉及哪个主题，加载对应的 reference 文档获取可用命令列表：
+**首先**加载 {baseDir}/references/workflows.md，判断用户请求是否匹配其中定义的工作流场景。
 
-| User intent | Reference to load |
-|---|---|
-| Trade | {baseDir}/references/trade-commands.md |
-| 跨步骤组合与典型调用顺序 | {baseDir}/references/workflows.md |
+- 如果匹配到工作流 → 按该工作流定义的命令编排（并行/串行）执行，跳到 Step 3
+- 如果没有匹配的工作流 → 从 Command Index 中选择合适的单条命令，跳到 Step 3
 
 ### Step 3 — 对每个目标命令执行 inspect
 
@@ -173,12 +171,12 @@ noah inspect trade <command>
 noah init --token <bearerToken>
 ```
 
-### Step 5 — 按编排规则执行命令
+### Step 5 — 执行命令
 
-根据 {baseDir}/references/workflows.md 中定义的工作流编排执行命令：
-- **并行**：命令之间无数据依赖时，同时执行
-- **串行**：后续命令依赖前一步输出时，等前一步完成再执行
-- 参数名和值必须严格按 Step 3 inspect 输出构造
+按 Step 3 inspect 输出的参数定义构造并执行命令：
+- 如果是工作流模式：按工作流定义的并行/串行规则执行多条命令
+- 如果是单命令模式：直接执行该命令
+- 参数名和值必须严格按 inspect 输出构造
 
 ### Step 6 — 汇总结果
 
