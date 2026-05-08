@@ -1,136 +1,120 @@
-# 组合工作流
+# Market 工作流
 
-以下是 market 命令的典型组合使用场景。每个工作流都假设 `noah --version` 已验证通过。
-
-**注意：执行前务必先用 `noah inspect market <command>` 确认实际参数名和格式。**
+以下工作流描述了用户常见请求对应的命令编排。每条命令执行前必须先 `noah inspect market <command>` 确认参数。
 
 ---
 
-## 工作流 1：查看某只股票的实时行情全貌
+## 工作流：全面了解一只股票
 
-场景：用户想了解一只股票当前的完整行情状态。
+用户说："帮我看看腾讯现在什么情况"
+
+### 并行执行（互不依赖）：
 
 ```bash
-# 1. 先确认市场是否开盘（code_list 为必填参数）
 noah market get-market-state --code_list HK.00700
-
-# 2. 获取该股票的市场快照（最新价、涨跌幅、成交量等）
 noah market get-market-snapshot --code_list HK.00700
+noah market get-capital-flow --code_list HK.00700
+```
 
-# 3. 获取实时分时数据
+### 串行执行（依赖上一步确认市场已开盘）：
+
+```bash
 noah market get-rt-data --code_list HK.00700
-
-# 4. 获取实时逐笔成交
 noah market get-rt-ticker --code_list HK.00700
 ```
 
+### 汇总输出：
+- 市场状态（是否开盘）
+- 最新价、涨跌幅、成交量（快照）
+- 资金流向（净流入/流出）
+- 分时走势
+- 最近逐笔成交
+
 ---
 
-## 工作流 2：K 线分析
+## 工作流：我的资产全貌
 
-场景：用户想查看某只股票的 K 线走势做技术分析。
+用户说："看看我现在有多少钱"
+
+### 并行执行：
 
 ```bash
-# 1. 先 inspect 确认参数（不同 K 线命令参数不同）
-noah inspect market get-cur-kline
-noah inspect market get-cur-kline-date
-
-# 2. 获取实时 K 线
-noah market get-cur-kline --code_list US.AAPL
-
-# 3. 获取指定时间范围的 K 线（参数名以 inspect 输出为准）
-noah market get-cur-kline-date --code_list US.AAPL --start_time 2025-01-01 --end_time 2025-03-01
+noah market total-asset --toCurrency HKD
+noah market balance-list
+noah market hold-share-list
+noah market fixed-income
+noah market cash-total-asset
 ```
 
+### 汇总输出：
+- 总资产（按币种汇总）
+- 现金余额
+- 公募持仓
+- 固收类资产
+- 现金宝余额
+
 ---
 
-## 工作流 3：排行榜与选股
+## 工作流：今天有什么涨得好的股票
 
-场景：用户想找涨幅靠前的股票，再查看具体信息。
+用户说："看看港股今天涨幅榜"
+
+### 串行执行：
 
 ```bash
-# 1. 先 inspect 确认排行榜参数
-noah inspect market get-stock-rank
-
-# 2. 获取排行榜数据
+# 第 1 步：获取排行榜
 noah market get-stock-rank --market HK --rank_type 1
 
-# 3. 对感兴趣的股票做条件选股
-noah inspect market get-stock-filter
-noah market get-stock-filter --market HK
-
-# 4. 查看选中股票的基本信息
-noah market get-stock-basicinfo --market HK --stock_type 1
+# 第 2 步：对排行榜前几名获取快照详情（从第 1 步结果中取 code）
+noah market get-market-snapshot --code_list HK.00700,HK.09988,HK.01024
 ```
+
+### 汇总输出：
+- 涨幅排行列表
+- 排名靠前个股的实时快照
 
 ---
 
-## 工作流 4：股东增减持追踪
+## 工作流：某只股票最近走势如何
 
-场景：用户想了解某只股票或某个时间段的股东增减持情况。
+用户说："看看苹果最近一个月的 K 线"
+
+### 串行执行：
 
 ```bash
-# 先 inspect 确认各命令的参数要求
-noah inspect market shareholder-inc-red-hold-by-ucode
-noah inspect market shareholder-inc-red-hold-by-date
-noah inspect market shareholder-inc-red-hold
+# 第 1 步：获取基本信息确认股票代码有效
+noah market get-stock-basicinfo --market US --stock_type 1
 
-# 按股票代码查询
+# 第 2 步：获取时间范围 K 线
+noah market get-cur-kline-date --code_list US.AAPL --start_time 2025-04-01 --end_time 2025-05-01
+```
+
+### 汇总输出：
+- K 线数据（开高低收、成交量）
+- 区间涨跌幅
+
+---
+
+## 工作流：股东最近有没有增减持
+
+用户说："看看腾讯最近有没有大股东减持"
+
+### 并行执行：
+
+```bash
 noah market shareholder-inc-red-hold-by-ucode --code HK.00700
-
-# 或按时间范围查询（参数名以 inspect 为准）
-noah market shareholder-inc-red-hold-by-date --start_date 2025-01-01 --end_date 2025-03-01
-
-# 或按市场范围查询
-noah market shareholder-inc-red-hold --market HK
+noah market get-market-snapshot --code_list HK.00700
 ```
+
+### 汇总输出：
+- 增减持明细（时间、股东、方向、数量）
+- 当前股价作为参考
 
 ---
 
-## 工作流 5：用户资产总览
+## 编排原则
 
-场景：用户想查看自己的资产汇总和各类持仓。
-
-```bash
-# 1. 查看资产汇总
-noah market total-asset --toCurrency HKD
-
-# 2. 查看公募持仓
-noah market hold-share-list
-
-# 3. 查看固收类资产
-noah market fixed-income
-
-# 4. 查看余额列表
-noah market balance-list
-```
-
----
-
-## 工作流 6：IPO 与交易日历
-
-场景：用户想了解近期 IPO 和交易日安排。
-
-```bash
-# 1. 先 inspect 确认参数
-noah inspect market get-ipo-list
-noah inspect market request-trading-days
-
-# 2. 获取 IPO 列表
-noah market get-ipo-list --market HK
-
-# 3. 获取交易日历
-noah market request-trading-days --market HK
-
-# 4. 获取全局市场状态
-noah market get-global-state
-```
-
----
-
-## 通用原则
-
-- 每个命令执行前，先用 `noah inspect market <command>` 确认实际参数名和是否必填
-- 如果 inspect 显示需要 bearer 鉴权，先执行 `noah init --token <bearerToken>`
-- 参数名和可选值以 inspect 输出为准，不要猜测
-- 结果较大时考虑缩小时间范围或添加过滤条件
+- **并行**：命令之间无数据依赖时，同时执行以提高效率
+- **串行**：后续命令需要前一步的输出结果（如 code_list 来自排行榜结果）时，必须等前一步完成
+- 每条命令执行前都必须先 inspect 确认参数
+- 汇总时将多条命令的结果整合为用户可理解的摘要
