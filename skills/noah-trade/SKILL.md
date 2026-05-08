@@ -130,22 +130,59 @@ noah --version
 
 ## Operation Flow
 
-### Step 1 — Identify request type and load reference
+**执行任何命令前必须严格按以下步骤顺序操作，禁止跳过任何步骤。**
+
+### Step 1 — 验证 CLI 可用
+
+```bash
+noah --version
+```
+
+如果无输出或命令不存在，必须先完成 Install 部分的安装步骤。
+
+### Step 2 — 识别用户意图并加载参考文档
+
+根据用户请求判断涉及哪个主题，加载对应的 reference 文档获取可用命令列表：
 
 | User intent | Reference to load |
 |---|---|
 | Trade | {baseDir}/references/trade-commands.md |
 | 跨步骤组合与典型调用顺序 | {baseDir}/references/workflows.md |
 
-### Step 2 — Verify the CLI exists and inspect the command
+### Step 3 — 对每个目标命令执行 inspect
 
-Run `noah --version` first. If it prints output, continue with `noah inspect trade <command>` to confirm required parameters, body shape, response shape, and authentication requirements. If it does not print output, use the install steps declared in frontmatter, make sure devDependencies are installed, and rerun `noah --version` before continuing.
+**禁止跳过此步骤。禁止凭记忆或猜测直接执行命令。**
 
-### Step 3 — Run commands immediately
+对本次需要执行的每一条命令，都必须先运行：
 
-Always invoke the globally installed CLI with `noah ...`. Do not replace the documented commands with local project execution forms.
+```bash
+noah inspect trade <command>
+```
 
-Many commands in this skill depend on authenticated trade data. Inspect first, confirm required query/body fields, and then execute with validated parameters.
+从 inspect 输出中获取：
+- 必填参数名和类型
+- 可选参数
+- enum 可选值
+- 是否需要 bearer 鉴权
+
+### Step 4 — 鉴权（如 inspect 显示需要）
+
+如果 inspect 输出的鉴权部分包含 `bearerAuth`，确保已执行：
+
+```bash
+noah init --token <bearerToken>
+```
+
+### Step 5 — 按编排规则执行命令
+
+根据 {baseDir}/references/workflows.md 中定义的工作流编排执行命令：
+- **并行**：命令之间无数据依赖时，同时执行
+- **串行**：后续命令依赖前一步输出时，等前一步完成再执行
+- 参数名和值必须严格按 Step 3 inspect 输出构造
+
+### Step 6 — 汇总结果
+
+将所有命令的执行结果整合为用户可理解的摘要返回。
 
 ---
 
