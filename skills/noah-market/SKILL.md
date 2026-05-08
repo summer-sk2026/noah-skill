@@ -24,83 +24,80 @@ agent:
 
 # Noah Market CLI
 
-Command-driven noah market skill for the globally installed Noah CLI.
+Command-driven skill for the globally installed Noah CLI.
 
-## CRITICAL: CLI Dependency
+---
 
-**This skill CANNOT function without the `noah` CLI being installed and globally available.**
+## CLI 依赖（必读）
 
-This skill is entirely driven by the `noah` command-line tool. Every operation listed below requires the `noah` binary to be installed globally on the system. There is NO alternative execution path — without a working `noah` command, this skill has zero capability.
+**本 skill 完全依赖全局安装的 `noah` 命令运行，没有替代执行路径。**
 
-- repository: `https://github.com/summer-sk2026/noah-cli/tree/main`
-- git clone URL: `https://github.com/summer-sk2026/noah-cli.git`
-- binary name: `noah`
-- all runtime commands MUST use the globally installed `noah` command
-- do NOT execute through local project scripts, `npx`, `node src/...`, or any other local entry point
-- do NOT skip the build step — the CLI must be compiled from TypeScript source before global installation
-- the build step requires devDependencies (e.g. `tsup`), so they MUST be installed
+- 仓库：`https://github.com/summer-sk2026/noah-cli/tree/main`
+- 可执行文件：`noah`（全局安装后系统可直接调用）
+- 所有命令必须以 `noah ...` 形式调用，禁止使用 `npx`、`node src/...` 或项目内脚本
+- 执行任何业务命令前必须先 `noah --version` 验证 CLI 可用
 
-## Preflight
-
-Before running any command in this skill, you MUST complete these checks in order:
-
-1. Run `noah --version` to verify the CLI is globally available
-2. If `noah --version` produces version output → the CLI is ready, proceed to step 5
-3. If `noah --version` fails or command not found → you MUST install the CLI following the **Install** section below. Do NOT skip this step. Do NOT attempt to run any other noah command until installation succeeds.
-4. After installation, run `noah --version` again to confirm success. If it still fails, do NOT proceed — report the installation failure.
-5. Before executing any business command, run `noah inspect <namespace> <command>` to confirm required parameters, body shape, and authentication requirements. Do NOT guess arguments.
-6. If inspect output shows bearer authentication is required, ensure `noah init --token <bearerToken>` has been completed before executing the command.
-
-## Install
-
-**When to install:** Install the CLI if `noah --version` does not produce output, returns an error, or the command is not found.
-
-**Installation method:** Clone from source, build, and install globally. You MUST follow ALL steps below in exact order. Do NOT skip any step. Do NOT substitute alternative approaches.
-
-### Step-by-step installation commands:
+### 安装（仅当 `noah --version` 失败时执行）
 
 ```bash
-# Step 1: Clone the repository
 git clone https://github.com/summer-sk2026/noah-cli.git
-
-# Step 2: Enter the project directory
 cd noah-cli
-
-# Step 3: Install ALL dependencies including devDependencies
-# IMPORTANT: You MUST use --include=dev because the build tool (tsup) is a devDependency
-# Using plain "npm install" without --include=dev may skip build tools and cause build failure
-npm install --include=dev
-
-# Step 4: Build the TypeScript source into executable JavaScript
-# This step WILL FAIL if devDependencies were not installed in Step 3
-npm run build
-
-# Step 5: Install the built CLI globally so "noah" is available system-wide
-npm install -g .
+npm install --include=dev   # 必须 --include=dev，否则构建工具 tsup 不会被安装
+npm run build                # 编译 TypeScript 源码
+npm install -g .             # 全局安装，使 noah 可用
+noah --version               # 验证安装成功
 ```
 
-### Post-installation verification:
+若安装失败，检查：Node.js >= 18、git 可用、每一步无报错、系统 PATH 包含全局 npm 目录。
+
+---
+
+## Operation Flow
+
+**用户提出任何请求时，按以下顺序处理：**
+
+### Step 1 — 验证 CLI
 
 ```bash
-# MUST succeed before proceeding with any other command
 noah --version
 ```
 
-### Common installation mistakes to avoid:
-- ❌ Do NOT run `npm install` without `--include=dev` — build will fail due to missing `tsup`
-- ❌ Do NOT skip `npm run build` — the CLI source is TypeScript and cannot run directly
-- ❌ Do NOT skip `npm install -g .` — without global install, `noah` command won't be available
-- ❌ Do NOT use `npx`, `node dist/...`, or project-local scripts as a substitute for global `noah`
-- ❌ Do NOT attempt to run business commands before `noah --version` succeeds
-- ✅ Always use the globally installed `noah ...` command form after installation
+无输出则先按上面安装步骤完成安装。
 
-### If installation fails:
-1. Ensure Node.js >= 18 and npm are available
-2. Ensure git is available for cloning
-3. Check that `npm install --include=dev` completed without errors
-4. Check that `npm run build` completed without errors (look for `tsup` related errors)
-5. Check that `npm install -g .` completed without permission errors (use sudo on Linux/macOS if needed)
-6. If all steps pass but `noah --version` still fails, check your system PATH
+### Step 2 — 优先匹配工作流
+
+**这是最重要的一步。** 加载 {baseDir}/references/workflows.md，判断用户请求是否匹配预定义的工作流场景：
+
+1. 全面了解一只股票（市场状态 + 快照 + 资金流向 + 分时 + 逐笔）
+2. 我的资产全貌（总资产 + 余额 + 公募 + 固收 + 现金宝）
+3. 今天涨幅榜（排行榜 → 快照）
+4. 某只股票走势（基本信息 → K 线）
+5. 股东增减持追踪（增减持明细 + 当前股价）
+
+- **匹配到工作流** → 必须按工作流定义的命令编排（并行/串行）执行全部命令，禁止只执行其中一条
+- **没有匹配** → 再从 Command Index 选单条命令
+
+### Step 3 — Inspect 每条目标命令
+
+对每条要执行的命令都必须先运行：
+
+```bash
+noah inspect market <command>
+```
+
+从输出中获取必填参数、可选参数、enum 可选值、鉴权要求。禁止凭记忆猜测参数。
+
+### Step 4 — 鉴权（若 inspect 输出含 `bearerAuth`）
+
+```bash
+noah init --token <bearerToken>
+```
+
+### Step 5 — 执行并汇总
+
+- 工作流模式：按定义的并行/串行规则执行所有命令
+- 单命令模式：直接执行
+- 汇总所有结果为用户可理解的摘要
 
 ---
 
@@ -139,73 +136,10 @@ noah --version
 
 ---
 
-## Operation Flow
-
-**执行任何命令前必须严格按以下步骤顺序操作，禁止跳过任何步骤。**
-
-### Step 1 — 验证 CLI 可用
-
-```bash
-noah --version
-```
-
-如果无输出或命令不存在，必须先完成 Install 部分的安装步骤。
-
-### Step 2 — 匹配工作流
-
-**首先**加载 {baseDir}/references/workflows.md，判断用户请求是否匹配其中定义的工作流场景。
-
-- 如果匹配到工作流 → 按该工作流定义的命令编排（并行/串行）执行，跳到 Step 3
-- 如果没有匹配的工作流 → 从 Command Index 中选择合适的单条命令，跳到 Step 3
-
-### Step 3 — 对每个目标命令执行 inspect
-
-**禁止跳过此步骤。禁止凭记忆或猜测直接执行命令。**
-
-对本次需要执行的每一条命令，都必须先运行：
-
-```bash
-noah inspect market <command>
-```
-
-从 inspect 输出中获取：
-- 必填参数名和类型
-- 可选参数
-- enum 可选值
-- 是否需要 bearer 鉴权
-
-### Step 4 — 鉴权（如 inspect 显示需要）
-
-如果 inspect 输出的鉴权部分包含 `bearerAuth`，确保已执行：
-
-```bash
-noah init --token <bearerToken>
-```
-
-### Step 5 — 执行命令
-
-按 Step 3 inspect 输出的参数定义构造并执行命令：
-- 如果是工作流模式：按工作流定义的并行/串行规则执行多条命令
-- 如果是单命令模式：直接执行该命令
-- 参数名和值必须严格按 inspect 输出构造
-
-### Step 6 — 汇总结果
-
-将所有命令的执行结果整合为用户可理解的摘要返回。
-
----
-
-## Edge Cases
+## 注意事项
 
 - 如用户未明确 market 命令名，先运行 inspect 查看命令详情，再决定具体命令。
-- market 下部分命令虽然偏查询，但 inspect 可能显示 bearer 鉴权；如需要，先提示执行 `noah init --token <bearerToken>`。
+- 部分查询命令可能要求 bearer 鉴权，inspect 显示需要时先提示执行 `noah init --token <bearerToken>`。
 - 涉及时间范围、大结果集或高频行情时，先提醒结果可能较大，再视情况缩小参数范围。
-- 不要把账户、持仓、订单、费用等交易请求路由到 market skill。
-
-## Global Notes
-
-- 本 skill 默认依赖全局可用的 `noah` 命令。
-- 默认命令入口为 `noah`。
-- 实际执行时始终使用全局安装后的 `noah ...` 命令，不使用项目内脚本或本地入口替代。
-- 如果构建依赖未安装，优先使用会安装 devDependencies 的方式安装项目依赖。
+- 不要把账户、持仓、订单、费用等交易请求路由到 market skill，应改用 trade skill。
 - market skill 以查询、读取、分析型命令为主。
