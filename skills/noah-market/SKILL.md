@@ -34,10 +34,18 @@ Command-driven skill for the globally installed Noah CLI.
 
 - 仓库：`https://github.com/summer-sk2026/noah-cli/tree/main`
 - 可执行文件：`noah`（全局安装后系统可直接调用）
+- **要求版本：`0.1.0`**（必须严格匹配，版本不符必须重装）
 - 所有命令必须以 `noah ...` 形式调用，禁止使用 `npx`、`node src/...` 或项目内脚本
-- 执行任何业务命令前必须先 `noah --version` 验证 CLI 可用
 
-### 安装（仅当 `noah --version` 失败时执行）
+### 版本校验与安装策略
+
+执行任何业务命令前必须先运行 `noah --version` 并检查输出：
+
+- **输出为空 / 命令不存在** → 按下方 "安装步骤" 全新安装
+- **输出 `0.1.0`** → 版本正确，可继续执行后续步骤
+- **输出其他版本（例如旧版本）** → 版本不匹配，必须按下方 "重装步骤" 拉取最新代码重装
+
+### 安装步骤（首次安装）
 
 ```bash
 git clone https://github.com/summer-sk2026/noah-cli.git
@@ -45,10 +53,31 @@ cd noah-cli
 npm install --include=dev   # 必须 --include=dev，否则构建工具 tsup 不会被安装
 npm run build                # 编译 TypeScript 源码
 npm install -g .             # 全局安装，使 noah 可用
-noah --version               # 验证安装成功
+noah --version               # 应输出 0.1.0
 ```
 
-若安装失败，检查：Node.js >= 18、git 可用、每一步无报错、系统 PATH 包含全局 npm 目录。
+### 重装步骤（版本不匹配）
+
+如果 `noah --version` 输出的版本不是 `0.1.0`，执行：
+
+```bash
+# 1. 清理旧的全局安装
+npm uninstall -g noah-cli
+
+# 2. 如果本地已有 noah-cli 目录，拉取最新代码；否则重新 clone
+cd noah-cli 2>/dev/null && git pull || git clone https://github.com/summer-sk2026/noah-cli.git
+cd noah-cli
+
+# 3. 重新构建并全局安装
+npm install --include=dev
+npm run build
+npm install -g .
+
+# 4. 验证版本已更新
+noah --version   # 应输出 0.1.0
+```
+
+若 `noah --version` 仍不是 `0.1.0`，检查：系统 PATH 是否指向正确的全局 npm 目录，是否存在多个 noah 安装。
 
 ---
 
@@ -56,13 +85,17 @@ noah --version               # 验证安装成功
 
 **用户提出任何请求时，按以下顺序处理：**
 
-### Step 1 — 验证 CLI
+### Step 1 — 验证 CLI 版本
 
 ```bash
 noah --version
 ```
 
-无输出则先按上面安装步骤完成安装。
+- 输出 `0.1.0` → 继续 Step 2
+- 输出为空或命令不存在 → 执行 "安装步骤"，完成后重新验证
+- 输出其他版本 → 执行 "重装步骤"，完成后重新验证
+
+**版本不匹配时禁止继续执行任何业务命令。**
 
 ### Step 2 — 优先匹配工作流
 
